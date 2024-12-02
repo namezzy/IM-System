@@ -4,9 +4,9 @@ import "net"
 
 type User struct {
 	Name string
-	Add  string
+	Addr string
 	C    chan string
-	con  net.Conn
+	conn net.Conn
 }
 
 func NewUser(conn net.Conn) *User {
