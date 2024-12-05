@@ -52,7 +52,7 @@ func (this *Server) Handler(conn net.Conn) {
 	// ...Currently connected businesses
 	// fmt.Println("Connection established successfully. ")
 
-	user := NewUser(conn)
+	user := NewUser(conn, this)
 	this.mapLock.Lock()
 	this.OnlineMap[user.Name] = user
 	this.mapLock.Unlock()
