@@ -7,6 +7,7 @@ import (
 	"sync"
 )
 
+// Create class of Server
 type Server struct {
 	Ip   string
 	Port int
@@ -63,7 +64,7 @@ func (this *Server) Handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				this.BroadCast(user, "下线")
+				this.BroadCast(user, "Offline")
 				return
 			}
 
