@@ -55,11 +55,33 @@ func (this *User) Offline() {
 	this.server.BroadCast(this, "Offline")
 }
 
+// Send a message to the corresponding client of the current User.
+func (this *User) SendMsg(msg string) {
+	this.conn.Write([]byte(msg))
+}
+
 // User's business of processing messages
 func (this *User) DoMessage(msg string) {
+	if msg == "who" {
+		// Query the current list of users
+		this.server.mapLock.Lock()
+		for _, user := range this.server.OnlineMap {
+			onlineMsg := "[" + user.Addr + "]" + user.Name + "Online...\n"
+			this.SendMsg(onlineMsg)
+
+		}
+		this.server.mapLock.Unlock()
+
+	} else {
+		this.server.BroadCast(this, msg)
+	}
 	this.server.BroadCast(this, msg)
 }
 
+/*
+Method to listen to the current User channel and
+send messages directly to the remote client when there is a message
+*/
 func (this *User) ListenMessage() {
 	for {
 		msg := <-this.C
