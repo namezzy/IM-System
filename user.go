@@ -66,7 +66,7 @@ func (this *User) DoMessage(msg string) {
 		// Query the current list of users
 		this.server.mapLock.Lock()
 		for _, user := range this.server.OnlineMap {
-			onlineMsg := "[" + user.Addr + "]" + user.Name + "Online...\n"
+			onlineMsg := "[" + user.Addr + "]" + user.Name + " Online...\n"
 			this.SendMsg(onlineMsg)
 
 		}
