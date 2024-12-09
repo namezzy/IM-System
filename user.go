@@ -33,23 +33,31 @@ func NewUser(conn net.Conn, server *Server) *User {
 // User's online business
 func (this *User) Online() {
 
-	// Add user to OnlineMap.
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
+	// User online, add user to OnlineMap.
+	this.server.mapLock.Lock()
+	this.server.OnlineMap[this.Name] = this
+	this.server.mapLock.Unlock()
 
-	this.BroadCast(user, "Online")
+	// Broadcasting current user online message
+	this.server.BroadCast(this, "Online")
 
 }
 
 // User's offline business
 func (this *User) Offline() {
 
+	// User offline delete user from OnlineMap
+	this.server.mapLock.Lock()
+	delete(this.server.OnlineMap, this.Name)
+	this.server.mapLock.Unlock()
+
+	// Broadcasting current user offline message.
+	this.server.BroadCast(this, "Offline")
 }
 
 // User's business of processing messages
-func (this *User) DoMessage() {
-
+func (this *User) DoMessage(msg string) {
+	this.server.BroadCast(this, msg)
 }
 
 func (this *User) ListenMessage() {

@@ -53,18 +53,15 @@ func (this *Server) Handler(conn net.Conn) {
 	// fmt.Println("Connection established successfully. ")
 
 	user := NewUser(conn, this)
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
 
-	this.BroadCast(user, "Online")
+	user.Online()
 
 	go func() {
 		buf := make([]byte, 4096)
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				this.BroadCast(user, "Offline")
+				user.Offline()
 				return
 			}
 
@@ -72,13 +69,16 @@ func (this *Server) Handler(conn net.Conn) {
 				fmt.Println("Conn Read err: ", err)
 				return
 			}
-
+			//Extracting user's message(removing '\n')
 			msg := string(buf[:n-1])
 
-			this.BroadCast(user, msg)
+			// The user is processing the message for 'msg'
+			user.DoMessage(msg)
+
 		}
 	}()
 
+	//  The current handler is blocking.
 	select {}
 
 }
