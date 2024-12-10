@@ -88,6 +88,9 @@ func (this *User) DoMessage(msg string) {
 			delete(this.server.OnlineMap, this.Name)
 			this.server.OnlineMap[newName] = this
 			this.server.mapLock.Unlock()
+
+			this.Name = newName
+			this.SendMsg("You updated your username: " + this.Name + "\n")
 		}
 
 	} else {
