@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 // Create class of Server
@@ -56,6 +57,9 @@ func (this *Server) Handler(conn net.Conn) {
 
 	user.Online()
 
+	// Listen for user activity
+	isLive := make(chan bool)
+
 	go func() {
 		buf := make([]byte, 4096)
 		for {
@@ -75,11 +79,35 @@ func (this *Server) Handler(conn net.Conn) {
 			// The user is processing the message for 'msg'
 			user.DoMessage(msg)
 
+			// Any message from a user indicates that the user is currently active
+			isLive <- true
+
 		}
 	}()
 
 	//  The current handler is blocking.
-	select {}
+	for {
+		select {
+		case <-isLive:
+			// The current user is active, the timer should be reset.
+			// Do nothing, but update the timer below to keep the select active.
+
+		case <-time.After(time.Second * 10):
+			// It's already overtime
+			//  Force logout the current user.
+			user.SendMsg("You have been logged out.")
+
+			// Remove the user's resources.
+			close(user.C)
+
+			// Close connect
+			conn.Close()
+
+			// Exit the current handler
+			return // runtime.Goexit()
+
+		}
+	}
 
 }
 
