@@ -106,7 +106,7 @@ func (this *Server) Handler(conn net.Conn) {
 				default:
 				}
 			}
-			timer.Reset(10 * time.Second)
+			timer.Reset(300 * time.Second)
 
 		case <-timer.C:
 			// It's already overtime

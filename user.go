@@ -122,7 +122,7 @@ func (this *User) DoMessage(msg string) {
 	} else {
 		this.server.BroadCast(this, msg)
 	}
-	this.server.BroadCast(this, msg)
+
 }
 
 /*
