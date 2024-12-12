@@ -111,7 +111,7 @@ func (this *Server) Handler(conn net.Conn) {
 		case <-timer.C:
 			// It's already overtime
 			//  Force logout the current user.
-			user.SendMsg("You have been logged out duo to inactivity.\n")
+			user.SendMsg("You have been logged out due to inactivity.\n")
 
 			// Delete from the online user list
 			this.mapLock.Lock()
