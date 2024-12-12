@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"strings"
+	"time"
 )
 
 type User struct {
@@ -105,8 +107,35 @@ send messages directly to the remote client when there is a message
 */
 func (this *User) ListenMessage() {
 	for {
-		msg := <-this.C
+		select {
+		// Receive messages from the channel with a timeout
+		case msg, ok := <-this.C:
+			if !ok {
+				// The channel had closed and exit goroutine
+				return
+			}
 
-		this.conn.Write([]byte(msg + "\n"))
+			// Setting write overtime
+			err := this.conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+			if err != nil {
+				fmt.Println("SetWriteDeadline error:", err)
+				return
+			}
+
+			// Write with error handling
+			_, err = this.conn.Write([]byte(msg + "\n"))
+			if err != nil {
+				// Write failed, possibly duo to a closed connection
+				fmt.Println("Write message error:", err)
+				return
+			}
+
+			// Clear the write timeout
+			err = this.conn.SetWriteDeadline(time.Time{})
+			if err != nil {
+				fmt.Println("Clear WriteDeadline error:", err)
+				return
+			}
+		}
 	}
 }

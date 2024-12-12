@@ -54,11 +54,16 @@ func (this *Server) Handler(conn net.Conn) {
 	// fmt.Println("Connection established successfully. ")
 
 	user := NewUser(conn, this)
-
 	user.Online()
 
+	// Use a dedicated timer.
+	timer := time.NewTimer(10 * time.Second)
+
+	// Timer reset channel.
+	resetTime := make(chan bool, 1)
+
 	// Listen for user activity
-	isLive := make(chan bool)
+	//isLive := make(chan bool)
 
 	go func() {
 		buf := make([]byte, 4096)
@@ -80,7 +85,13 @@ func (this *Server) Handler(conn net.Conn) {
 			user.DoMessage(msg)
 
 			// Any message from a user indicates that the user is currently active
-			isLive <- true
+			// isLive <- true
+
+			// Send a signal to the timer reset channel.
+			select {
+			case resetTime <- true:
+			default:
+			}
 
 		}
 	}()
@@ -88,16 +99,26 @@ func (this *Server) Handler(conn net.Conn) {
 	//  The current handler is blocking.
 	for {
 		select {
-		case <-isLive:
-			// The current user is active, the timer should be reset.
-			// Do nothing, but update the timer below to keep the select active.
+		case <-resetTime:
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+			timer.Reset(10 * time.Second)
 
-		case <-time.After(time.Second * 10):
+		case <-timer.C:
 			// It's already overtime
 			//  Force logout the current user.
-			user.SendMsg("You have been logged out.")
+			user.SendMsg("You have been logged out duo to inactivity.")
 
-			// Remove the user's resources.
+			// Delete from the online user list
+			this.mapLock.Lock()
+			delete(this.OnlineMap, user.Name)
+			this.mapLock.Unlock()
+
+			// Close user channel
 			close(user.C)
 
 			// Close connect
