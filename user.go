@@ -95,6 +95,30 @@ func (this *User) DoMessage(msg string) {
 			this.SendMsg("You updated your username: " + this.Name + "\n")
 		}
 
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+		// Message: to|zhangsan|message
+
+		// 1. Obtain the other person's username
+		remoetName := strings.Split(msg, "|")[1]
+		if remoetName == "" {
+			this.SendMsg("The message format is incorrect, please use the format \"to|zhangsan|hello\n")
+			return
+		}
+
+		// 2. Get the user object of the other party based on the username.
+		remoteUser, ok := this.server.OnlineMap[remoetName]
+		if !ok {
+			this.SendMsg("The username dose not exit \n")
+			return
+		}
+		// 3. Get the message content and send it out using the User object of the other party
+		context := strings.Split(msg, "|")[2]
+		if context == "" {
+			this.SendMsg("No message content,Please resend.\n")
+			return
+		}
+		remoteUser.SendMsg(this.Name + " Said:" + context)
+
 	} else {
 		this.server.BroadCast(this, msg)
 	}

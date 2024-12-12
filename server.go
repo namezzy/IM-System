@@ -57,7 +57,7 @@ func (this *Server) Handler(conn net.Conn) {
 	user.Online()
 
 	// Use a dedicated timer.
-	timer := time.NewTimer(10 * time.Second)
+	timer := time.NewTimer(300 * time.Second)
 
 	// Timer reset channel.
 	resetTime := make(chan bool, 1)
