@@ -11,6 +11,8 @@ type Client struct {
 	ServerPort int
 	Name       string
 	conn       net.Conn
+	// The current user's mode
+	flag int
 }
 
 func NewClient(serverIp string, serverPort int) *Client {
@@ -18,6 +20,7 @@ func NewClient(serverIp string, serverPort int) *Client {
 	client := &Client{
 		ServerIp:   serverIp,
 		ServerPort: serverPort,
+		flag:       999,
 	}
 
 	// connect server
@@ -29,6 +32,49 @@ func NewClient(serverIp string, serverPort int) *Client {
 
 	// return object
 	return client
+}
+
+func (client *Client) menu() bool {
+	var flag int
+
+	fmt.Println("1.Public chat mode")
+	fmt.Println("2.Private chat mode")
+	fmt.Println("3.Rename username")
+	fmt.Println("0.Exit")
+
+	fmt.Scanln(&flag)
+
+	if flag >= 0 && flag <= 3 {
+		client.flag = flag
+		return true
+	} else {
+		fmt.Println(">>>>Please enter a number within the valid range.<<<<")
+		return false
+	}
+
+}
+
+func (client *Client) Run() {
+	for client.flag != 0 {
+		for client.menu() != true {
+		}
+		// Handle different business operations according to different models.
+		switch client.flag {
+		case 1:
+			// public chat mode
+			fmt.Println("Choose public chat mode.....")
+			break
+		case 2:
+			// private chat mode
+			fmt.Println("Choose private chat mode")
+			break
+		case 3:
+			// rename username
+			fmt.Println("choose rename username")
+			break
+
+		}
+	}
 }
 
 var serverIp string
@@ -52,5 +98,5 @@ func main() {
 	fmt.Println(">>>>> Successfully to connected to the server.")
 
 	// start client's business
-	select {}
+	client.Run()
 }
