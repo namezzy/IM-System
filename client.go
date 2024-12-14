@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -34,6 +36,12 @@ func NewClient(serverIp string, serverPort int) *Client {
 	return client
 }
 
+// Process the response message from the server and display it directly to standard output.
+func (client *Client) DealResponse() {
+	// As soon as there is data on client.conn, directly copy it to standard output and block listening indefinitely.
+	io.Copy(os.Stdout, client.conn)
+}
+
 func (client *Client) menu() bool {
 	var flag int
 
@@ -54,6 +62,45 @@ func (client *Client) menu() bool {
 
 }
 
+func (client *Client) PublicChat() {
+	// Prompt the user enter messages
+	var chatMsg string
+
+	fmt.Println(">>>>Please input your message, or type \"exit\" to quit.")
+	fmt.Scanln(&chatMsg)
+
+	for chatMsg != "exit" {
+		// send server
+
+		// If the message is not empty, send it.
+		if len(chatMsg) != 0 {
+			sendMsg := chatMsg + "\n"
+			_, err := client.conn.Write([]byte(sendMsg))
+			if err != nil {
+				fmt.Println("conn Write err: ", err)
+				break
+			}
+		}
+		chatMsg = ""
+		fmt.Println(">>>>Please input your message, or type \"exit\" to quit.")
+		fmt.Scanln(&chatMsg)
+	}
+
+}
+
+func (client *Client) UpdateName() bool {
+	fmt.Println(">>>> Please input username: ")
+	fmt.Scanln(&client.Name)
+
+	sendMsg := "rename|" + client.Name + "\n"
+	_, err := client.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn.Write err: ", err)
+		return false
+	}
+	return true
+}
+
 func (client *Client) Run() {
 	for client.flag != 0 {
 		for client.menu() != true {
@@ -62,7 +109,8 @@ func (client *Client) Run() {
 		switch client.flag {
 		case 1:
 			// public chat mode
-			fmt.Println("Choose public chat mode.....")
+			// fmt.Println("Choose public chat mode.....")
+			client.PublicChat()
 			break
 		case 2:
 			// private chat mode
@@ -70,7 +118,7 @@ func (client *Client) Run() {
 			break
 		case 3:
 			// rename username
-			fmt.Println("choose rename username")
+			client.UpdateName()
 			break
 
 		}
@@ -94,6 +142,9 @@ func main() {
 		fmt.Println(">>>>> Failed to connect to the server.")
 		return
 	}
+
+	// Start a separate goroutine to handle the server's response messages.
+	go client.DealResponse()
 
 	fmt.Println(">>>>> Successfully to connected to the server.")
 
