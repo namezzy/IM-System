@@ -62,6 +62,53 @@ func (client *Client) menu() bool {
 
 }
 
+// Query online user
+func (client *Client) SelectUsers() {
+	sendMsg := "who\n"
+	_, err := client.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn Write err: ", err)
+		return
+	}
+}
+
+// private chat mode
+func (client *Client) PrivateChat() {
+	var remoteName string
+	var chatMsg string
+
+	client.SelectUsers()
+	fmt.Println(">>>> Please enter the chat recipient's [username], type \"exit\"to quit. ")
+	fmt.Scanln(&remoteName)
+
+	for remoteName != "exit" {
+		fmt.Println(">>>>Please input your messages, or type \"exit\" to quit.")
+		fmt.Scanln(&chatMsg)
+
+		for chatMsg != "exit" {
+			// No sent if the message is null
+			if len(chatMsg) != 0 {
+				sendMsg := "to|" + remoteName + "|" + chatMsg + "\n\n"
+				_, err := client.conn.Write([]byte(sendMsg))
+				if err != nil {
+					fmt.Println("conn Write err: ", err)
+					break
+				}
+			}
+
+			chatMsg = ""
+			fmt.Println(">>>>Please input your messages, or type \"exit\" to quit.")
+			fmt.Scanln(&chatMsg)
+
+		}
+
+		client.SelectUsers()
+		fmt.Println(">>>> Please enter the chat recipient's [username], type \"exit\"to quit. ")
+		fmt.Scanln(&remoteName)
+
+	}
+}
+
 func (client *Client) PublicChat() {
 	// Prompt the user enter messages
 	var chatMsg string
@@ -114,7 +161,8 @@ func (client *Client) Run() {
 			break
 		case 2:
 			// private chat mode
-			fmt.Println("Choose private chat mode")
+			//fmt.Println("Choose private chat mode")
+			client.PrivateChat()
 			break
 		case 3:
 			// rename username
